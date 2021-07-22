@@ -1,0 +1,67 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: apic-publish-products-apis-pipeline
+spec:
+  params:
+    - name: git-apic-pipeline-git-url
+      type: string
+      default: 'https://github.ibm.com/techaeta/apic-pipeline.git'
+      description: GitHub url where the pipeline scripts are stored. These are the python scripts the pipeline will execute
+    - name: git-apic-pipeline-git-branch
+      type: string
+      default: master
+      description: Github branch for the pipeline scripts
+    - name: git-apic-yaml-url
+      type: string
+      default: 'https://github.ibm.com/techaeta/apic-yaml/'
+      description: GitHub url where the products and APIs definitions are stored
+    - name: git-apic-yaml-branch
+      type: string
+      default: master
+      description: GitHub branch for the products and APIs
+    - name: git-products-path
+      type: string
+      default: 'Demo/Products'
+      description: Path to where the products definitions are stored within your GitHub repository
+    - name: git-apis-path
+      type: string
+      default: 'Demo/APIs'
+      description: Path to where the APIs definitions are stored within your GitHub repository
+    - name: apic-project
+      type: string
+      default: prod
+      description: OpenShift project where your IBM API Connect Cluster v10 has been deployed into
+    - name: debug
+      type: string
+      default: "True"
+      description: Debug flag
+  tasks:
+    - name: apic-publish-products-apis
+      params:
+      # GitHub url where the pipeline scripts are stored. These are the scripts the pipeline will execute.
+      - name: git-apic-pipeline-git-url
+        value: "$(params.git-apic-pipeline-git-url)"
+      # Github branch for the pipeline scripts.
+      - name: git-apic-pipeline-git-branch
+        value: "$(params.git-apic-pipeline-git-branch)"
+      # GitHub url where the products and APIs definitions are stored.
+      - name: git-apic-yaml-url
+        value: "$(params.git-apic-yaml-url)"
+      # GitHub branch for the products and APIs.
+      - name: git-apic-yaml-branch
+        value: "$(params.git-apic-yaml-branch)"
+      # Path to where the products definitions are stored within your GitHub repository.
+      - name: git-products-path
+        value: "$(params.git-products-path)"
+      # Path to where the APIs definitions are stored within your GitHub repository.
+      - name: git-apis-path
+        value: "$(params.git-apis-path)"
+      # OpenShift project where your IBM API Connect Cluster v10 has been deployed into.
+      - name: apic-project
+        value: "$(params.apic-project)"
+      # Debug flag
+      - name: debug
+        value: "$(params.debug)"
+      taskRef:
+        name: apic-publish-products-apis

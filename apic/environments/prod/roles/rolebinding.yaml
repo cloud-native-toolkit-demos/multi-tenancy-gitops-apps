@@ -5,7 +5,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: pipeline
-    namespace: apic-pipelines-prod
+    namespace: ci
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
