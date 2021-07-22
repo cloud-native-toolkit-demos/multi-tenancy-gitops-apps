@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: apic-pipelines-prod
+  annotations:
+    argocd.argoproj.io/sync-wave: "300"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: apic-pipelines-prod
+    server: https://kubernetes.default.svc
+  project: applications
+  source:
+    path: apic/environments/apic-pipelines-prod
+    repoURL: https://github.com/jesusmah/multi-tenancy-gitops-apps.git
+    targetRevision: master
+  syncPolicy: {}

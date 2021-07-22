@@ -1,0 +1,7 @@
+resources:
+# IBM API Connect Production Instance
+- apic-instance/ibm-apic-single-cluster-prod.yaml
+
+# IBM API Connect Production Pipelines Role and RoleBinding
+- roles/role.yaml
+- roles/rolebinding.yaml

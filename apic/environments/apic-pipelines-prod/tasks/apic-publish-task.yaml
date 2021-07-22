@@ -1,0 +1,206 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: apic-publish-products-apis
+  annotations:
+    description: Publish APIC products and apis
+    app.openshift.io/description: Publish APIC products and apis
+    app.openshift.io/vcs-uri: https://github.com/IBM/ibm-garage-tekton-tasks
+    app.openshift.io/vcs-ref: master
+  labels:
+    version: 0.0.1
+spec:
+  description: >-
+    This task is a test of a Tekton task for the APIC pipelines.
+  params:
+    - name: git-apic-pipeline-git-url
+      type: string
+      description: GitHub url where the pipeline scripts are stored. These are the python scripts the pipeline will execute.
+    - name: git-apic-pipeline-git-branch
+      type: string
+      default: master
+      description: Github branch for the pipeline scripts.
+    - name: git-apic-yaml-url
+      type: string
+      description: GitHub url where the products and APIs definitions are stored.
+    - name: git-apic-yaml-branch
+      type: string
+      default: master
+      description: GitHub branch for the products and APIs.
+    - name: git-products-path
+      type: string
+      description: Path to where the products definitions are stored within your GitHub repository.
+    - name: git-apis-path
+      type: string
+      description: Path to where the APIs definitions are stored within your GitHub repository.
+    - name: source-dir
+      type: string
+      default: /source
+      description: Path where an empty directory will be mounted to which will serve as the source location for all the task steps.
+    - name: tools-image
+      type: string
+      default: quay.io/ibmgaragecloud/ibmcloud-dev:v2.0.4
+      description: Docker image with the tools needed for executing this task.
+    - name: python-image
+      type: string
+      default: python:3.9.5
+      description: Python Docker image needed for executing this task.
+    - name: oc-cli-image
+      type: string
+      default: quay.io/openshift/origin-cli:latest
+      description: OpenShift CLI Docker image needed for executing oc commands.
+    - name: apic-project
+      type: string
+      default: prod
+      description: OpenShift project where your IBM API Connect Cluster v10 has been deployed into.
+    - name: debug
+      type: string
+      default: "True"
+      description: Debug flag
+  volumes:
+    - name: source
+      emptyDir: {}
+  stepTemplate:
+    volumeMounts:
+      - name: source
+        mountPath: $(params.source-dir)
+    envFrom:
+      - secretRef:
+          name: apic-pipeline-git
+      - secretRef:
+          name: apic-pipeline-provider-org
+    env:
+      - name: CONFIG_FILES_DIR
+        value: $(params.source-dir)/config
+      - name: GIT_PRODUCTS_APIS_URL
+        value: $(params.git-apic-yaml-url)
+      - name: GIT_PRODUCTS_APIS_BRANCH
+        value: $(params.git-apic-yaml-branch)
+      - name: GIT_PRODUCTS_PATH
+        value: $(params.git-products-path)
+      - name: GIT_APIS_PATH
+        value: $(params.git-apis-path)
+  steps:
+    - name: pipeline-config
+      image: quay.io/ibmgaragecloud/alpine-git
+      script: |
+        set +x
+        echo "**************************"
+        echo "** Step pipeline-config **"
+        echo "**************************"
+        echo
+        echo "API Connect Products And APIs pipeline"
+        echo "--------------------------------------"
+        echo
+        echo "API Connect Publish Products and APIs Pipeline GitHub repository:         $(params.git-apic-pipeline-git-url)"
+        echo "API Connect Publish Products and APIs Pipeline GitHub repository branch:  $(params.git-apic-pipeline-git-branch)"
+        echo "API Connect Products and APIs GitHub repository:                          $GIT_PRODUCTS_APIS_URL"
+        echo "API Connect Products and APIs GitHub repository branch:                   $GIT_PRODUCTS_APIS_BRANCH"
+        echo "API Connect Products and APIs GitHub repository Products path:            $GIT_PRODUCTS_PATH"
+        echo "API Connect Products and APIs GitHub repository APIs path:                $GIT_APIS_PATH"
+    - name: git-clone
+      image: quay.io/ibmgaragecloud/alpine-git
+      script: |
+        set +x
+        echo "********************"
+        echo "** Step git-clone **"
+        echo "********************"
+        echo 
+        if [[ -n "${GIT_USERNAME}" ]] && [[ -n "${GIT_PRIV_TOKEN}" ]]; then
+            git clone "$(echo $(params.git-apic-pipeline-git-url) | awk -F '://' '{print $1}')://${GIT_USERNAME}:${GIT_PRIV_TOKEN}@$(echo $(params.git-apic-pipeline-git-url) | awk -F '://' '{print $2}')" $(params.source-dir)
+        else
+            git clone $(params.git-apic-pipeline-git-url) $(params.source-dir)
+        fi
+        cd $(params.source-dir)
+        git checkout $(params.git-apic-pipeline-git-branch)
+    - name: initialize-config
+      image: $(params.oc-cli-image)
+      workingDir: $(params.source-dir)
+      script: |
+        set +x
+        echo "****************************"
+        echo "** Step initialize-config **"
+        echo "****************************"
+        if [[ "$(params.debug)" == "True" ]]; then echo "DEBUG is enabled"; export DEBUG=True; fi
+        cd scripts
+        sh config.sh $(params.apic-project)
+    - name: initialize-build
+      image: $(params.python-image)
+      workingDir: $(params.source-dir)
+      script: |
+        set +x
+        echo "***************************"
+        echo "** Step initialize-build **"
+        echo "***************************"
+        cd scripts
+        python3 initialize_apic_deploy.py
+    - name: download-products
+      image: $(params.python-image)
+      workingDir: $(params.source-dir)
+      script: |
+        set +x
+        echo "****************************"
+        echo "** Step download-products **"
+        echo "****************************"
+        cd scripts
+        python3 download_product_files_from_git.py
+    - name: download-apis
+      image: $(params.python-image)
+      workingDir: $(params.source-dir)
+      script: |
+        set +x
+        echo "************************"
+        echo "** Step download-apis **"
+        echo "************************"
+        # Pre-req for parsing YAML files
+        python3 -mpip install PyYAML > /dev/null
+        cd scripts
+        python3 download_api_files_from_git.py
+    - name: replace-placeholders
+      image: $(params.python-image)
+      workingDir: $(params.source-dir)
+      script: |
+        set +x
+        echo "*******************************"
+        echo "** Step replace-placeholders **"
+        echo "*******************************"
+        # Pre-req for parsing YAML files
+        python3 -mpip install PyYAML > /dev/null
+        cd scripts
+        python3 replace_api_yaml_env_param.py
+    - name: publish-products
+      image: $(params.python-image)
+      workingDir: $(params.source-dir)
+      script: |
+        set +x
+        echo "***************************"
+        echo "** Step publish-products **"
+        echo "***************************"
+        # Pre-req for parsing YAML files and create HTTP requests
+        export PYTHONWARNINGS="ignore:Unverified HTTPS request"
+        python3 -mpip install PyYAML requests > /dev/null
+        cd scripts
+        python3 apic_platform_publish_to_catalog.py
+    - name: test-apis
+      image: $(params.python-image)
+      workingDir: $(params.source-dir)
+      script: |
+        set +x
+        echo "********************"
+        echo "** Step test-apis **"
+        echo "********************"
+        # Pre-req for parsing YAML files and create HTTP requests
+        export PYTHONWARNINGS="ignore:Unverified HTTPS request"
+        python3 -mpip install PyYAML requests > /dev/null
+        cd scripts
+        python3 test_apic_apis.py
+    - name: print-audit
+      image: $(params.python-image)
+      workingDir: $(params.source-dir)
+      script: |
+        set +x
+        echo "**********************"
+        echo "** Step print-audit **"
+        echo "**********************"
+        cd scripts
+        python3 print_audit.py
