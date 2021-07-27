@@ -6,7 +6,7 @@ spec:
   params:
     - name: git-apic-pipeline-git-url
       type: string
-      default: 'https://github.ibm.com/techaeta/apic-pipeline.git'
+      default: 'https://github.ibm.com/techaeta/apic-publish-pipeline.git'
       description: GitHub url where the pipeline scripts are stored. These are the python scripts the pipeline will execute
     - name: git-apic-pipeline-git-branch
       type: string
@@ -14,7 +14,7 @@ spec:
       description: Github branch for the pipeline scripts
     - name: git-apic-yaml-url
       type: string
-      default: 'https://github.ibm.com/techaeta/apic-yaml/'
+      default: 'https://github.ibm.com/techaeta/apic-products-apis-yaml/'
       description: GitHub url where the products and APIs definitions are stored
     - name: git-apic-yaml-branch
       type: string
