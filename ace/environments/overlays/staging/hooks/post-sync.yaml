@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: trigger-performance-test
+  namespace: ci
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+spec:
+  template:
+    spec:
+      serviceAccountName: pipeline
+      containers:
+      - name: performance-test
+        image: quay.io/rhcanada/tkn-cli
+        command:
+          - tkn
+        args:
+          - -n
+          - ci
+          - pipeline
+          - start
+          - ace-promote-stage-prod
+          - --param
+          - is-source-repo-url=https://github.com/cloud-native-toolkit-demos/ace-customer-details.git
+          - --param
+          - is-source-repo-private-key=""
+          - --param
+          - source-env=staging
+          - --param
+          - destination-env=prod
+          - --param
+          - jmeter-users=250
+          - --workspace
+          - name=shared-workspace,claimName=ace-test-pvc
+          - --serviceaccount
+          - pipeline
+      restartPolicy: Never
+  backoffLimit: 0

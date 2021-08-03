@@ -1,7 +1,0 @@
-apiVersion: appconnect.ibm.com/v1beta1
-kind: Configuration
-metadata:
-  name: ibm-ace-server.jks
-spec:
-  type: keystore
-  secretName: ibm-ace-server.jks

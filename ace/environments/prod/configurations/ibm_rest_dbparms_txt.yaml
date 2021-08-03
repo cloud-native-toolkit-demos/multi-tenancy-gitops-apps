@@ -1,7 +1,0 @@
-apiVersion: appconnect.ibm.com/v1beta1
-kind: Configuration
-metadata:
-  name: ibm-rest-dbparms.txt
-spec:
-  type: setdbparms
-  secretName: ibm-rest-dbparms.txt

@@ -1,7 +1,0 @@
-apiVersion: appconnect.ibm.com/v1beta1
-kind: Configuration
-metadata:
-  name: ibm-ca.jks
-spec:
-  type: truststore
-  secretName: ibm-ca.jks

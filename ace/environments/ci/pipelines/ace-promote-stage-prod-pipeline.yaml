@@ -21,12 +21,15 @@ spec:
     - description: Points to the dev/staging env
       name: source-env
       type: string
+      default: staging
     - description: Points to the staging/prod env
       name: destination-env
       type: string
+      default: prod
     - description: User Load
       name: jmeter-users
       type: string
+      default: "250"
   tasks:
     - name: clone-is-source
       params:
@@ -80,6 +83,8 @@ spec:
         value: $(params.source-env)
       - name: destination-env
         value: $(params.destination-env)
+      - name: git-pr
+        value: "true"
       runAfter:
       - performance-testing
       taskRef:

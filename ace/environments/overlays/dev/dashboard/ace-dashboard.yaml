@@ -1,0 +1,14 @@
+apiVersion: appconnect.ibm.com/v1beta1
+kind: Dashboard
+metadata:
+  name: ace-dashboard
+spec:
+  license:
+    accept: true
+    license: L-APEH-BPUCJK
+    use: CloudPakForIntegrationNonProduction
+  useCommonServices: true
+  version: 11.0.0.10-r2
+  storage:
+    type: ephemeral
+  replicas: 1

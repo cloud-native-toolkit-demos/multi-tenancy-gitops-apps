@@ -2,67 +2,46 @@ apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: ibm-gitops-for-ace
+  annotations:
+    description: Promotes an ACE Integration Server Container Image by writing or opening a PR against gitops repo
+    app.openshift.io/description: Promotes an ACE Integration Server Container Image by writing or opening a PR against gitops repo
+    app.openshift.io/vcs-uri: https://cloud-native-toolkit-demos/multi-tenancy-gitops-apps
+    app.openshift.io/vcs-ref: master
+  labels:
+    version: 0.0.0
 spec:
   params:
-    - default: ""
-      name: app-name
-      type: string
-    - default: ""
-      name: app-type
-      type: string
-    - default: ""
-      name: app-name
-      type: string
-    - default: /source
-      name: source-dir
-      type: string
-    - default: ""
-      name: subdir
-      type: string
-    - default: ""
-      name: parentdir
-      type: string
-    - default: requirements.yaml
-      name: yaml
-      type: string
-    - default: ""
-      name: helm-url
-      type: string
-    - default: quay.io/ibmgaragecloud/ibmcloud-dev:v2.0.4
-      name: tools-image
-      type: string
-    - default: ace/environments #1-apps/instances
-      name: app-path
-      type: string
-    - default: .
-      name: ace-path
-      type: string
-    - default: .
-      name: base-path
-      type: string
-    - default: integrationServer
-      name: integrationServer-path
-      type: string
-    - default: configurations
-      name: config-path
-      type: string
-    - default: ""
-      name: source-env
-      type: string
-    - default: ""
-      name: destination-env
-      type: string
-    - name: copier-image
-      type: string
-      default: ubuntu
+    - name: source-env
+      default: ""
+    - name: source-yaml
+      default: "integrationServer/IntegrationServerPatch.yaml"
+    - name: destination-env
+      default: ""
+    - name: destination-yaml
+      default: "integrationServer/IntegrationServerPatch.yaml"
+    - name: destination-image
+      default: ""
+    - name: git-pr
+      default: "false"
+    - name: source-dir
+      default: /source
+    - name: subdir
+      default: "ace/environments/overlays"
+    - name: parentdir
+      default: ""
+    - name: tools-image
+      default: quay.io/ibmgaragecloud/ibmcloud-dev:v2.0.4
+  volumes:
+    - name: source
+      emptyDir: {}
   stepTemplate:
-    name: ""
-    resources: {}
     volumeMounts:
-      - mountPath: $(params.source-dir)
-        name: source
+      - name: source
+        mountPath: $(params.source-dir)
   steps:
-    - name: gitops-clone
+    - name: gitops
+      image: $(params.tools-image)
+      workingDir: $(params.source-dir)
       env:
         - name: NAMESPACE
           valueFrom:
@@ -73,286 +52,163 @@ spec:
         - name: GIT_USERNAME
           valueFrom:
             secretKeyRef:
-              key: username
               name: git-credentials
+              key: username
               optional: true
         - name: GIT_PASSWORD
           valueFrom:
             secretKeyRef:
-              key: password
               name: git-credentials
+              key: password
               optional: true
         - name: GIT_USERNAME_CD
           valueFrom:
             secretKeyRef:
-              key: username
               name: gitops-cd-secret
+              key: username
               optional: true
         - name: GIT_PASSWORD_CD
           valueFrom:
             secretKeyRef:
-              key: password
               name: gitops-cd-secret
+              key: password
               optional: true
         - name: GIT_PARENT_DIR
           valueFrom:
             configMapKeyRef:
+              name: gitops-repo-ace
               key: parentdir
+              optional: true
+        - name: GIT_PARENT_DIR_SERVICES
+          valueFrom:
+            configMapKeyRef:
               name: gitops-repo-ace
+              key: parentdir-services
               optional: true
         - name: GIT_PROTOCOL
           valueFrom:
             configMapKeyRef:
-              key: protocol
               name: gitops-repo-ace
+              key: protocol
               optional: true
         - name: GIT_HOST
           valueFrom:
             configMapKeyRef:
-              key: host
               name: gitops-repo-ace
+              key: host
               optional: true
         - name: GIT_ORG
           valueFrom:
             configMapKeyRef:
-              key: org
               name: gitops-repo-ace
+              key: org
               optional: true
         - name: GIT_REPO
           valueFrom:
             configMapKeyRef:
-              key: repo
               name: gitops-repo-ace
+              key: repo
               optional: true
         - name: GIT_BRANCH
           valueFrom:
             configMapKeyRef:
-              key: branch
               name: gitops-repo-ace
+              key: branch
               optional: true
-      image: $(params.tools-image)
-      resources: {}
       script: |
-        #!/usr/bin/env bash
-        set -ex
+          #!/usr/bin/env bash
+          set -ex
 
-        BRANCH_CMD=""
-        if [[ -n ${GIT_BRANCH} ]]; then
-          BRANCH_CMD="-b ${GIT_BRANCH}"
-        fi
-
-        GIT_USERNAME="$(echo -e "${GIT_USERNAME}" | tr -d '[:space:]')"
-        GIT_PASSWORD="$(echo -e "${GIT_PASSWORD}" | tr -d '[:space:]')"
-
-        echo "Cloning the corresponding repository"
-        # clone repo
-        GIT_URL="${GIT_PROTOCOL}://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_HOST}/${GIT_ORG}/${GIT_REPO}"
-        git clone ${BRANCH_CMD} ${GIT_URL} update_gitops_repo
-      workingDir: $(params.source-dir)
-    - name: copy-to-next-env
-      image: $(params.copier-image)
-      workingDir: $(params.source-dir)
-      env:
-        - name: APP_PATH
-          value: update_gitops_repo/$(params.app-path)
-        - name: SRC_ENV
-          value: $(params.source-env)
-        - name: DST_ENV
-          value: $(params.destination-env)
-        - name: ACE_PATH
-          value: $(params.ace-path)
-        - name: BASE_PATH
-          value: $(params.base-path)
-      args:
-        - "$(params.integrationServer-path) $(params.config-path)"
-        - $(params.source-dir)/kustomization_items.txt
-      script: |-
-        #!/bin/bash
-        set -ex
-        function copy_for_promotion() {
-          local src_folder=$1
-          local dst_folder=$2
-
-          if [ "$(ls ${dst_folder}/*.yaml)" ]; then
-            rm ${dst_folder}/*.yaml
+          SUBDIR="$(params.subdir)"
+          if [[ -n "$(params.parentdir)" ]]; then
+            PARENT_DIR="$(params.parentdir)"
+          elif [[ -n "${GIT_PARENT_DIR_SERVICES}" ]] && [[ "${GIT_PARENT_DIR_SERVICES}" = "bash -c"* ]]; then
+            PARENT_DIR=$(eval $GIT_PARENT_DIR_SERVICES | tail -n 1)
+          elif [[ -n "${GIT_PARENT_DIR_SERVICES}" ]]; then
+            PARENT_DIR="${GIT_PARENT_DIR_SERVICES}"
+          elif [[ -n "${GIT_PARENT_DIR}" ]] && [[ "${GIT_PARENT_DIR}" = "bash -c"* ]]; then
+            PARENT_DIR=$(eval $GIT_PARENT_DIR | tail -n 1)
+          elif [[ -n "${GIT_PARENT_DIR}" ]]; then
+            PARENT_DIR="${GIT_PARENT_DIR}"
+          else
+            PARENT_DIR="."
+          fi
+          SUBDIR="${PARENT_DIR}/${SUBDIR}"
+          PROTOCOL="${GIT_PROTOCOL}"
+          if [[ -z "${PROTOCOL}" ]]; then
+            PROTOCOL="https"
           fi
 
-          cp -r ${src_folder}/. ${dst_folder}
-
-        }
-
-        function generate_list_for_kustomization() {
-          local dst_folder=$1
-          local kustomization_file_path=$2
-          local item_list_path=$3
-
-          KUSTOMIZATION_PARENT_DIRECTORY=$(dirname ${kustomization_file_path})
-
-          for item in $(ls ${dst_folder}/*.yaml); do
-            realpath $item --relative-to ${KUSTOMIZATION_PARENT_DIRECTORY} \
-              >> ${item_list_path}
-          done
-        }
-
-
-        function copy_for_promotion_set() {
-          local paths_to_copy=$1
-          local item_list_path=$2
-
-          local env_pfx="${APP_PATH}"
-          local src_folder="${env_pfx}/${SRC_ENV}"
-          local dst_folder="${env_pfx}/${DST_ENV}"
-          local kustomization_file_path=${dst_folder}/kustomization.yaml
-
-          for path in ${paths_to_copy[*]}; do
-            copy_for_promotion ${src_folder}/$path ${dst_folder}/$path
-            generate_list_for_kustomization ${dst_folder}/$path \
-              $kustomization_file_path $item_list_path
-          done
-
-        }
-
-        if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-          paths_to_copy=$1
-          item_list_path=$2
-
-          copy_for_promotion_set "$paths_to_copy" $item_list_path
-
-        fi
-    - name: update-kustomization
-      image: quay.io/hollisc/yq-zip
-      args:
-        - $(params.source-dir)/kustomization_items.txt
-      workingDir: $(params.source-dir)
-      env:
-        - name: APP_PATH
-          value: update_gitops_repo/$(params.app-path)
-        - name: DST_ENV
-          value: $(params.destination-env)
-        - name: ACE_PATH
-          value: $(params.ace-path)
-        - name: BASE_PATH
-          value: $(params.base-path)
-      script: |-
-        #!/bin/bash
-
-        set -ex
-
-        function update_kustomization_from_file() {
-          item_list_file_path=$1
-
-          items=$(cat $item_list_file_path)
-
-          for item in ${items[*]}; do
-            update_kustomization $item
-          done
-        }
-
-        function update_kustomization() {
-          local item=$1
-
-          local env_dir=${APP_PATH}/${DST_ENV}
-          local base_dir=${env_dir}
-          local kustomization_file_path=${base_dir}/kustomization.yaml
-
-          local contains=$(config=$item yq e '.resources[] | select(. == env(config))' \
-             $kustomization_file_path)
-
-          if [[ -z $contains ]]; then
-            config=$item yq e -i '.resources = (.resources // []) + env(config)' \
-              $kustomization_file_path
-
-            prettyfy $kustomization_file_path
+          DEST_YAML_FILE="${SUBDIR}/$(params.destination-env)/$(params.destination-yaml)"
+          if [[ -n "$(params.destination-image)" ]]; then
+            DEST_IMAGE_URL="$(params.destination-image)"
+          else
+            SOURCE_YAML_FILE="${SUBDIR}/$(params.source-env)/$(params.source-yaml)"
           fi
-        }
 
-        function prettyfy() {
-          local file=$1
+          if [[ -z "${GIT_HOST}" ]] || [[ -z "${GIT_ORG}" ]] || [[ -z "${GIT_REPO}" ]]; then
+              echo "GitOps repo has not been configured with confimap gitops-repo. Skipping trigger step"
+              exit 0
+          fi
+          set +x
+          if [[ -n "${GIT_USERNAME_CD}" ]]; then
+            GIT_AUTH_USER="${GIT_USERNAME_CD}"
+            GIT_AUTH_PWD="${GIT_PASSWORD_CD}"
+          elif [[ -n "${GIT_USERNAME}" ]]; then
+            GIT_AUTH_USER="${GIT_USERNAME}"
+            GIT_AUTH_PWD="${GIT_PASSWORD}"
+          else
+            echo "Credentials for GitOps repo not set in secret gitops-cd-secret or git-credentials"
+            exit 1
+          fi
+          set -x
 
-          yq e --prettyPrint $file >/tmp/temp.yaml
-          mv /tmp/temp.yaml $file
-        }
 
-        if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-          item_list_file_path=$1
+          BRANCH_CMD=""
+          if [[ -n "${GIT_BRANCH}" ]]; then
+            BRANCH_CMD="-b ${GIT_BRANCH}"
+          fi
 
-          update_kustomization_from_file $item_list_file_path
-        fi
-    - name: gitops-push
-      image: $(params.tools-image)
-      workingDir: $(params.source-dir)
-      env:
-        - name: GIT_USERNAME
-          valueFrom:
-            secretKeyRef:
-              key: username
-              name: git-credentials
-              optional: true
-        - name: GIT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: password
-              name: git-credentials
-              optional: true
-        - name: GIT_PROTOCOL
-          valueFrom:
-            configMapKeyRef:
-              key: protocol
-              name: gitops-repo-ace
-              optional: true
-        - name: GIT_HOST
-          valueFrom:
-            configMapKeyRef:
-              key: host
-              name: gitops-repo-ace
-              optional: true
-        - name: GIT_ORG
-          valueFrom:
-            configMapKeyRef:
-              key: org
-              name: gitops-repo-ace
-              optional: true
-        - name: GIT_REPO
-          valueFrom:
-            configMapKeyRef:
-              key: repo
-              name: gitops-repo-ace
-              optional: true
-        - name: GIT_BRANCH
-          valueFrom:
-            configMapKeyRef:
-              key: branch
-              name: gitops-repo-ace
-              optional: true
-      securityContext:
-        privileged: true
-      script: |
-        set -ex
+          echo "git clone ${BRANCH_CMD} ${PROTOCOL}://${GIT_AUTH_USER}:xxxx@${GIT_HOST}/${GIT_ORG}/${GIT_REPO}"
+          set +x
+          GIT_URL="${PROTOCOL}://${GIT_AUTH_USER}:${GIT_AUTH_PWD}@${GIT_HOST}/${GIT_ORG}/${GIT_REPO}"
+          git clone ${BRANCH_CMD} ${GIT_URL} gitops_cd
+          set -x
+          cd gitops_cd
+          git config user.email "bot@cloudnativetoolkit.dev"
+          git config user.name "Cloud Native Toolkit Pipeline"
 
-        GIT_URL="${GIT_PROTOCOL}://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_HOST}/${GIT_ORG}/${GIT_REPO}"
 
-        cd update_gitops_repo
+          if [[ -n "${DEST_IMAGE_URL}" ]]; then
+            echo "Destination file image will be set to ${DEST_IMAGE_URL}"
+          elif [[ -f "${DEST_YAML_FILE}" ]]; then
+            echo "Destination file ${DEST_YAML_FILE} found, file will be updated with contents from ${SOURCE_YAML_FILE}"
+            cat "${DEST_YAML_FILE}"
+            DEST_IMAGE_URL="$(yq r ${SOURCE_YAML_FILE} spec.pod.containers.runtime.image)"
+          else
+            echo "Destination file ${DEST_YAML_FILE} not found"
+            exit 1
+          fi
+          yq w -i ${DEST_YAML_FILE} spec.pod.containers.runtime.image ${DEST_IMAGE_URL}
+          echo "Destination file updated with contents with image ${DEST_IMAGE_URL}"
+          cat "${DEST_YAML_FILE}"
 
-        git_version="$(git rev-parse --short HEAD)"
-        git checkout -b cntk-ci-pipeline-${git_version}
+          if [[ $(git status -s | wc -l) -eq 0 ]]; then
+            echo "No changes"
+            exit 0
+          fi
+          git diff
+          git add "${SUBDIR}/"
+          git commit -m "Cloudnative toolkit commit" --signoff
 
-        if [[ $(git status -s | wc -l) -eq 0 ]]; then
-          echo "No changes"
-          exit 0
-        fi
+          if [[ "$(params.git-pr)" == "true" ]]; then
+            git_version="$(git rev-parse --short HEAD)"
+            git checkout -b cntk-ci-pipeline-${git_version}
+            git push origin cntk-ci-pipeline-${git_version}
 
-        git config user.email "bot@cloudnativetoolkit.dev"
-        git config user.name "Cloud Native Toolkit Pipeline"
-
-        git add .
-        git commit -m "Cloudnative toolkit commit" --amend --no-edit --signoff
-        git remote rm origin
-
-        git remote add origin ${GIT_URL} > /dev/null 2>&1
-        git push origin cntk-ci-pipeline-${git_version}
-
-        GIT_PUSH_URL="${GIT_PROTOCOL}://api.github.com/repos/${GIT_ORG}/${GIT_REPO}/pulls"
-        curl -u ${GIT_USERNAME}:${GIT_PASSWORD} -d '{"title":"PR to promote to $(params.destination-env) environment","base":"'${GIT_BRANCH}'", "head":"'${GIT_ORG}':cntk-ci-pipeline-'${git_version}'"}' ${GIT_PUSH_URL}
-  volumes:
-    - emptyDir: {}
-      name: source
+            GIT_PUSH_URL="${GIT_PROTOCOL}://api.github.com/repos/${GIT_ORG}/${GIT_REPO}/pulls"
+            curl -u ${GIT_USERNAME}:${GIT_PASSWORD} -d '{"title":"PR to promote to $(params.destination-env) environment","base":"'${GIT_BRANCH}'", "head":"'${GIT_ORG}':cntk-ci-pipeline-'${git_version}'"}' ${GIT_PUSH_URL}
+          else
+            echo "Pushing directly to repository"
+            git push -v
+          fi

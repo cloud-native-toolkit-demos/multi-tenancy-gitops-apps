@@ -1,0 +1,12 @@
+resources:
+  - secrets/basic-auth-rest-secret.yaml
+  - secrets/ibm-ace-server-jks-secret.yaml
+  - secrets/ibm-ca-jks-secret.yaml
+  - secrets/ibm-client-key-certs-secret.yaml
+  - secrets/ibm-rest-dbparms-secret.yaml
+  - configurations/ibm_rest_serverconf_yaml.yaml
+  - configurations/ibm_rest_dbparms_txt.yaml
+  - configurations/ibm_ace_server_jks.yaml
+  - configurations/ibm_ca_jks.yaml
+  - configurations/ibm_rest_policy.yaml
+  - integrationServer/IntegrationServer.yaml

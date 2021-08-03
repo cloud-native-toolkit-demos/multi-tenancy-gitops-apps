@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: trigger-functional-test
+  namespace: ci
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+spec:
+  template:
+    spec:
+      serviceAccountName: pipeline
+      containers:
+      - name: functional-test
+        image: quay.io/rhcanada/tkn-cli
+        command:
+          - tkn
+        args:
+          - -n
+          - ci
+          - pipeline
+          - start
+          - ace-promote-dev-stage
+          - --param
+          - is-source-repo-url=https://github.com/cloud-native-toolkit-demos/ace-customer-details.git
+          - --param
+          - is-source-repo-private-key=""
+          - --param
+          - source-env=dev
+          - --param
+          - destination-env=staging
+          - --workspace
+          - name=shared-workspace,claimName=ace-test-pvc
+          - --serviceaccount
+          - pipeline
+      restartPolicy: Never
+  backoffLimit: 0

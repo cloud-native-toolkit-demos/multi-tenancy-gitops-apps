@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: ace-bar
+  name: ace-build-bar-promote-dev
 
 spec:
   params:
@@ -16,18 +16,8 @@ spec:
     type: string
     default: '""'
 
-  - name: is-infra-repo-url
-    type: string
-    default: https://github.com/cloud-native-toolkit-demos/ace-infra.git
-  - default: is-infra
-    name: is-infra-directory
-    type: string
-  - name: is-infra-repo-private-key
-    type: string
-    default: '""'
-
   - default: Dockerfile
-    name: dockerfile-relative-path-to-infra
+    name: dockerfile-relative-path-to-src
     type: string
 
   - name: git-ops-repo-url
@@ -46,6 +36,11 @@ spec:
   - name: git-ops-kustomization-path
     type: string
     default: ace/environments/dev/kustomization.yaml
+
+  - description: Points to the dev
+    name: destination-env
+    type: string
+    default: dev
 
 
   tasks:
@@ -67,22 +62,6 @@ spec:
     - name: output
       workspace: shared-workspace
 
-  - name: clone-is-infra
-    params:
-    - name: url
-      value: $(params.is-infra-repo-url)
-    - name: subdirectory
-      value: $(params.is-infra-directory)
-    - name: deleteExisting
-      value: "true"
-    - name: sshPrivateKey
-      value: $(params.is-infra-repo-private-key)
-    taskRef:
-      kind: Task
-      name: git-clone
-    workspaces:
-    - name: output
-      workspace: shared-workspace
 
   - name: resolve-props
     params:
@@ -123,12 +102,11 @@ spec:
     - name: IMAGE
       value: $(tasks.resolve-props.results.registry-host)/$(context.pipelineRun.namespace)/$(tasks.resolve-props.results.release-name):$(tasks.clone-is-source.results.commit)
     - name: DOCKERFILE
-      value: $(workspaces.source.path)/$(params.is-infra-directory)/$(params.dockerfile-relative-path-to-infra)
+      value: $(workspaces.source.path)/$(params.is-source-directory)/$(params.dockerfile-relative-path-to-src)
     - name: CONTEXT
       value: $(workspaces.source.path)/bars
     runAfter:
     - generate-bar
-    - clone-is-infra
     taskRef:
       kind: Task
       name: buildah
@@ -136,49 +114,19 @@ spec:
     - name: source
       workspace: shared-workspace
 
-  - name: create-is
+  - name: gitops-for-ace
+    params:
+    - name: destination-env
+      value: $(params.destination-env)
+    - name: git-pr
+      value: "false"
+    - name: destination-image
+      value: $(tasks.resolve-props.results.registry-host)/$(context.pipelineRun.namespace)/$(tasks.resolve-props.results.release-name):$(tasks.clone-is-source.results.commit)
+    runAfter:
+    - build-is-image
     taskRef:
       kind: Task
-      name: create-is
-    params:
-      - name: is-infra-directory
-        value: $(params.is-infra-directory)
-      - name: IMAGE
-        value: $(tasks.resolve-props.results.registry-host)/$(context.pipelineRun.namespace)/$(tasks.resolve-props.results.release-name):$(tasks.clone-is-source.results.commit)
-      - name: release-name
-        value: $(tasks.resolve-props.results.release-name)
-      - name: configurations
-        value: $(tasks.resolve-props.results.is-configurations)
-    runAfter:
-      - build-is-image
-    workspaces:
-      - name: input
-        workspace: shared-workspace
-
-  - name: git-ops
-    taskRef:
-      kind: Task
-      name: git-ops-ace
-    params:
-      - name: url
-        value: $(params.git-ops-repo-url)
-      - name: revision
-        value: master
-      - name: sshPrivateKey
-        value: $(params.git-ops-repo-private-key)
-      - name: kustomization-path
-        value: $(params.git-ops-kustomization-path)
-      - name: filelist
-        value: IntegrationServer.yaml
-      - name: parent-directory-relative-to-workspace
-        value: $(params.git-ops-parent-directory-relative-to-workspace)
-      - name: destination-directory
-        value: $(params.git-ops-destination-directory)
-    runAfter:
-    - create-is
-    workspaces:
-    - name: shared-workspace
-      workspace: shared-workspace
+      name: ibm-gitops-for-ace
 
   workspaces:
   - name: shared-workspace

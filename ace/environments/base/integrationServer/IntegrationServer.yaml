@@ -1,0 +1,29 @@
+apiVersion: appconnect.ibm.com/v1beta1
+kind: IntegrationServer
+metadata:
+  name: create-customer-details-rest
+spec:
+  designerFlowsOperationMode: disabled
+  license:
+    accept: true
+    license: L-APEH-BPUCJK
+    use: CloudPakForIntegrationNonProduction
+  replicas: 1
+  router:
+    timeout: 120s
+  service:
+    endpointType: https
+  useCommonServices: true
+  version: 11.0.0.10-r2
+  adminServerSecure: true
+  pod:
+    containers:
+      runtime:
+        image: TO BE REPLACE BY PROMOTIONS PIPELINES
+        imagePullPolicy: Always
+  configurations:
+    - ibm-rest-dbparms.txt
+    - ibm-rest-serverconf.yaml
+    - ibm-rest-policy
+    - ibm-ace-server.jks
+    - ibm-ca.jks
