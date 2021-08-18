@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
 
 # Set variables
-GIT_USER=<GIT-USER>
-GIT_TOKEN=<GIT-TOKEN>
-SEALEDSECRET_NAMESPACE=sealed-secrets
+if [[ -z ${GIT_USER} ]]; then
+  echo "Please provide environment variable GIT_USER"
+  exit 1
+fi
+
+if [[ -z ${GIT_TOKEN} ]]; then
+  echo "Please provide environment variable GIT_TOKEN"
+  exit 1
+fi
+
+SEALED_SECRET_NAMESPACE=${SEALED_SECRET_NAMESPACE:-sealed-secrets}
 
 # Create Kubernetes Secret yaml
 cat <<EOF > delete-git-credentials-secret.yaml
@@ -12,7 +20,7 @@ kind: Secret
 metadata:
   name: git-credentials
   annotations:
-    tekton.dev/git-0: https://github.com 
+    tekton.dev/git-0: https://github.com
 type: kubernetes.io/basic-auth
 stringData:
   username: ${GIT_USER}
