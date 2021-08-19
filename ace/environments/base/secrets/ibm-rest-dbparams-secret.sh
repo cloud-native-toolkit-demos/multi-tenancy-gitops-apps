@@ -4,6 +4,12 @@
 IBM_REST_DBPARMS_PATH=<IBM-REST-DBPARMS-PATH>
 SEALEDSECRET_NAMESPACE=sealed-secrets
 
+# cat file ibm-rest-dbparms.txt
+#mqsisetdbparms -w /home/aceuser/ace-server -n setdbparms::truststore -u "truststorepwd" -p passw0rd
+#mqsisetdbparms -w /home/aceuser/ace-server -n setdbparms::keystore -u "keystorepwd" -p passw0rd
+#mqsisetdbparms -w /home/aceuser/ace-server -n local::basicAuthOverride -u aceuser -p changeit
+
+
 # Create Kubernetes Secret yaml
 oc create secret generic ibm-rest-dbparms.txt \
 --from-file=configuration=${IBM_REST_DBPARMS_PATH}/ibm-rest-dbparms.txt \
