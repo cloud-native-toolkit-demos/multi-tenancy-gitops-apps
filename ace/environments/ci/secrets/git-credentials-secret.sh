@@ -29,7 +29,7 @@ stringData:
 EOF
 
 # Encrypt the secret using kubeseal and private key from the cluster
-kubeseal --scope cluster-wide --controller-name${SEALED_SECRET_CONTOLLER_NAME} --controller-namespace=${SEALEDSECRET_NAMESPACE} -o yaml < delete-git-credentials-secret.yaml > git-credentials-secret.yaml
+kubeseal --scope cluster-wide --controller-name${SEALED_SECRET_CONTOLLER_NAME} --controller-namespace=${SEALED_SECRET_NAMESPACE} -o yaml < delete-git-credentials-secret.yaml > git-credentials-secret.yaml
 
 # NOTE, do not check delete-ibm-entitled-key-secret.yaml into git!
 rm delete-git-credentials-secret.yaml
