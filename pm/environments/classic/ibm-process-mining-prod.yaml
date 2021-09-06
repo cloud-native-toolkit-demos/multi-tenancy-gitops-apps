@@ -1,0 +1,37 @@
+apiVersion: processmining.ibm.com/v1beta1
+kind: ProcessMining
+metadata:
+  name: process-mining-prod
+  namespace: prod
+spec:
+  defaultStorageClassName: ibmc-file-gold-gid
+  license:
+    accept: true
+    cloudPak: IBM Cloud Pak for Business Automation
+  loglevel: INFO
+  processmining:
+    images:
+      imagepullpolicy: Always
+    storage:
+      database:
+        create: true
+        name: processmining-mongo
+        size: '10'
+      events:
+        create: true
+        name: processmining-repository
+        size: '50'
+  taskmining:
+    images:
+      imagepullpolicy: Always
+    install: true
+    storage:
+      database:
+        create: true
+        name: taskmining-mysql
+        size: '10'
+      events:
+        create: true
+        name: taskmining-data
+        size: '100'
+  version: 1.10.2
