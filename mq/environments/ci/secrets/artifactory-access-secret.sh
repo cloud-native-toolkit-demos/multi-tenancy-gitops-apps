@@ -12,7 +12,7 @@
 SEALED_SECRET_NAMESPACE=${SEALED_SECRET_NAMESPACE:-sealed-secrets}
 SEALED_SECRET_CONTOLLER_NAME=${SEALED_SECRET_CONTOLLER_NAME:-sealed-secrets}
 
-oc get secret artifactory-access -n tools -o yaml | sed 's/namespace: .*/namespace: ci/' |  oc apply -f - --dry-run=client -o yaml > delete-artifactory-access-secret.yaml
+oc get secret artifactory-access -n tools -o yaml | sed 's/namespace: .*/namespace: ci/' |  grep -v "uid:\|creationTimestamp:\|selfLink:\|resourceVersion"  > delete-artifactory-access-secret.yaml
 
 # Change existing password
 #oc exec pod/artifactory-artifactory-0 -n tools -it -- curl -XPATCH -uadmin:${ARTIFACTORY_CURRENT_PASSWORD} http://localhost:8040/access/api/v1/users/admin -H 'Content-Type: Application/json' -d '{ "password" : "'"${ARTIFACTORY_NEW_PASSWORD}"'" }' > /dev/null
