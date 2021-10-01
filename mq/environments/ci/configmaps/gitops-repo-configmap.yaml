@@ -9,9 +9,9 @@ metadata:
 data:
   branch: ocp47-2021-2
   host: github.com
-  org: $GIT_ORG
-  owner: $GIT_ORG
+  org: apac-mcm-aiops-asset
+  owner: apac-mcm-aiops-asset
   parentdir: .
   protocol: https
   repo: multi-tenancy-gitops-apps
-  url: https://github.com/$GIT_ORG/multi-tenancy-gitops-apps.git
+  url: https://github.com/apac-mcm-aiops-asset/multi-tenancy-gitops-apps.git
