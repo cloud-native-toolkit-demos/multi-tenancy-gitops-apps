@@ -29,7 +29,7 @@ spec:
   tasks:
     - name: dev-instance-tests
       taskRef:
-        name: ibm-functional-test-hp
+        name: ibm-functional-test
       params:
         - name: git-url
           value: "$(params.git-url)"
