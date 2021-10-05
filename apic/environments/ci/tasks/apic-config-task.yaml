@@ -34,7 +34,6 @@ spec:
       description: OpenShift CLI Docker image needed for executing oc commands.
     - name: apic-project
       type: string
-      default: prod
       description: OpenShift project where your IBM API Connect Cluster v10 has been deployed into.
     - name: debug
       type: string

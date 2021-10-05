@@ -12,6 +12,10 @@ spec:
       type: string
       default: master
       description: Github branch for the pipeline scripts
+    - name: apic-project
+      type: string
+      default: tools
+      description: OpenShift project where your IBM API Connect Cluster v10 has been deployed into
     - name: debug
       type: string
       default: "True"
@@ -25,6 +29,9 @@ spec:
       # Github branch for the pipeline scripts.
       - name: git-apic-pipeline-git-branch
         value: "$(params.git-apic-pipeline-git-branch)"
+      # OpenShift project where your IBM API Connect Cluster v10 has been deployed into.
+      - name: apic-project
+        value: "$(params.apic-project)"
       # Debug flag
       - name: debug
         value: "$(params.debug)"

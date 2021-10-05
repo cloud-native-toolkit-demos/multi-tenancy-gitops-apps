@@ -6,3 +6,8 @@ resources:
 # IBM API Connect Production Tasks
 - tasks/apic-config-task.yaml
 - tasks/apic-publish-task.yaml
+
+# IBM API Connect Pipeline Role and Rolebinding
+# to be able to list services and routes in tools namespace
+- roles/role.yaml
+- roles/rolebinding.yaml
