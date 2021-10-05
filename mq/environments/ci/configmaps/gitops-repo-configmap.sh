@@ -6,23 +6,10 @@ if [[ -z ${GIT_ORG} ]]; then
   exit 1
 fi
 
+GIT_BRANCH=${GIT_BRANCH:-master}
+
 # Create Kubernetes Secret yaml
-cat <<EOF > gitops-repo-configmap.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  labels:
-    app: multi-tenancy-gitops
-    group: pipeline
-    type: git
-  name: gitops-repo
-data:
-  branch: ocp47-2021-2
-  host: github.com
-  org: ${GIT_ORG}
-  owner: ${GIT_ORG}
-  parentdir: .
-  protocol: https
-  repo: multi-tenancy-gitops-apps
-  url: https://github.com/${GIT_ORG}/multi-tenancy-gitops-apps.git
-EOF
+( echo "cat <<EOF" ; cat gitops-repo-configmap.yaml_template ; echo EOF ) | \
+GIT_ORG=${GIT_ORG} \
+GIT_BRANCH=${GIT_BRANCH} \
+sh > gitops-repo-configmap.yaml

@@ -17,20 +17,15 @@ spec:
     - name: dest-environment
       description: environment
       default: staging
-    - name: app-type
-      description: Services / Application (2-services/instances or 3-apps/instances)
-    - name: app-name
-      description: Queuemanager / Application (mq-infra or mq-spring-app)
+    - name: app-path
+      description: Path in gitops repo
+      default: mq/environments
     - name: git-pr
       description: Enable the pipeline to do a PR for the gitops repo
       default: "true"
-    - name: release-name
-      description: Instance name of the deployment or statefulset (qm-dev or mq-spring-app-dev)
-    - name: instance-type
-      description: Instance type (deployment or statefulset)
     - name: test-file
-      description: Path of the postman collection (postman/mq-spring-app.postman_collection.json)
-      default: "<If tests exists, replace with postman collection json path>"
+      description: Path of the postman collection
+      default: "postman/mq-spring-app.postman_collection.json"
   tasks:
     - name: dev-instance-tests
       taskRef:
@@ -38,14 +33,8 @@ spec:
       params:
         - name: git-url
           value: "$(params.git-url)"
-        - name: app-name
-          value: "$(params.app-name)"
         - name: src-environment
           value: "$(params.src-environment)"
-        - name: release-name
-          value: "$(params.release-name)"
-        - name: instance-type
-          value: "$(params.instance-type)"
         - name: test-file
           value: "$(params.test-file)"
     - name: gitops
@@ -55,12 +44,12 @@ spec:
         - dev-instance-tests
       params:
         - name: app-name
-          value: "$(params.app-name)"
+          value: "$(tasks.dev-instance-tests.results.app-name)"
         - name: src-environment
           value: "$(params.src-environment)"
         - name: dest-environment
           value: "$(params.dest-environment)"
-        - name: app-type
-          value: "$(params.app-type)"
+        - name: app-path
+          value: "$(params.app-path)"
         - name: git-pr
           value: "$(params.git-pr)"

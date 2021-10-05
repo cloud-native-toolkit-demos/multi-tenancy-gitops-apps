@@ -1,0 +1,126 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: ibm-jmeter-performance-test
+  annotations:
+    description: Executes a JMeter Test from a GIT repo (preview)
+    app.openshift.io/description: Executes a JMeter Test from a GIT repo (preview)
+    app.openshift.io/vcs-uri: https://github.com/IBM/ibm-garage-tekton-tasks
+    app.openshift.io/vcs-ref: master
+  labels:
+    version: 0.0.0
+spec:
+  params:
+    - name: git-url
+      default: ""
+    - name: git-revision
+      default: master
+    - name: source-dir
+      default: /source
+    - name: src-environment
+      default: ""
+    - name: test-plan
+      default: ""
+  results:
+    - name: app-name
+      description: The app name
+  volumes:
+    - name: source
+      emptyDir: {}
+  stepTemplate:
+    volumeMounts:
+      - name: source
+        mountPath: $(params.source-dir)
+  steps:
+    - name: git-clone
+      image: quay.io/ibmgaragecloud/alpine-git
+      env:
+        - name: GIT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: git-credentials
+              key: password
+              optional: true
+        - name: GIT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: git-credentials
+              key: username
+              optional: true
+      script: |
+        set +x
+        if [[ -n "${GIT_USERNAME}" ]] && [[ -n "${GIT_PASSWORD}" ]]; then
+            git clone "$(echo $(params.git-url) | awk -F '://' '{print $1}')://${GIT_USERNAME}:${GIT_PASSWORD}@$(echo $(params.git-url) | awk -F '://' '{print $2}')" $(params.source-dir)
+        else
+            set -x
+            git clone $(params.git-url) $(params.source-dir)
+        fi
+        set -x
+        cd $(params.source-dir)
+        git checkout $(params.git-revision)
+    - name: resolve-route
+      image: quay.io/openshift/origin-cli:latest
+      workingDir: $(params.source-dir)
+      script: |
+        #!/bin/bash
+        set -e
+        SLEEP_TIME_SEC=10
+        RETRIES=20
+        SRC_ENV=$(echo $(params.src-environment) | cut -d "-" -f2)
+
+        url=$(params.git-url)
+        basename=$(basename $url)
+        echo $basename
+        GIT_REPO=${basename%.*}
+        echo $GIT_REPO
+        route=$(oc -n ${SRC_ENV} get route ${GIT_REPO} -o jsonpath='{.spec.host}' --ignore-not-found)
+
+        if [[ -z "$route" ]]; then
+          echo "This is a QueueManager ... Skipping this step"
+          exit 0
+        else
+          echo -n $route > /source/route.txt
+        fi
+    - name: jmeter-it
+      image: quay.io/hemankita/jmeter-11:latest
+      workingDir: $(params.source-dir)
+      script: |
+        #!/usr/bin/env bash
+        set -ex
+        if [ ! -f /source/route.txt ]; then
+          echo "This is a QueueManager ... Skipping this step"
+          exit 0
+        fi
+        route=$(cat /source/route.txt)
+        echo $route
+        test_plan="$(params.test-plan)"
+        ls
+        if [ -e $test_plan ]; then
+          # note: the export does not like the - sign
+          ${JMETER_BIN}/jmeter.sh \
+            -n -t $(params.test-plan) \
+            -Jroute=$route \
+            -l /source/report.jtl
+          cat /source/report.jtl
+          echo "checking for the existance of errors .."
+          LINES=$(grep false /source/report.jtl | wc -l)
+          TOTAL_LINES=$(cat /source/report.jtl | wc -l)
+          if [ $LINES -eq 0 ] ; then
+            echo "no errors in jmeter test -> ready to promote the code"
+            exit 0
+          else
+            echo "oops, errors were found."
+            exit 1
+          fi
+        else
+          echo "Skipping tests ... Jmeter test plan does not exist"
+        fi
+    - name: app-name
+      image: quay.io/ibmgaragecloud/ibmcloud-dev:v2.0.4
+      workingDir: $(params.source-dir)
+      script: |
+        url=$(params.git-url)
+        basename=$(basename $url)
+        GIT_REPO=${basename%.*}
+        echo $GIT_REPO
+        echo -n "${GIT_REPO}" | tee $(results.app-name.path)

@@ -11,22 +11,19 @@ metadata:
     version: 0.0.0
 spec:
   params:
-  - name: git-url
-    default: ""
-  - name: git-revision
-    default: master
-  - name: source-dir
-    default: /source
-  - name: release-name
-    default: ""
-  - name: src-environment
-    default: ""
-  - name: app-name
-    default: ""
-  - name: instance-type
-    default: ""
-  - name: test-file
-    default: ""
+    - name: git-url
+      default: ""
+    - name: git-revision
+      default: master
+    - name: source-dir
+      default: /source
+    - name: src-environment
+      default: ""
+    - name: test-file
+      default: ""
+  results:
+    - name: app-name
+      description: The app name
   volumes:
     - name: source
       emptyDir: {}
@@ -61,50 +58,6 @@ spec:
       set -x
       cd $(params.source-dir)
       git checkout $(params.git-revision)
-  # - name: wait-till-deployment
-  #   image: quay.io/openshift/origin-cli:latest
-  #   workingDir: $(params.source-dir)
-  #   script: |
-  #     set -e
-  #     SLEEP_TIME_SEC=10
-  #     RETRIES=20
-
-  #     SRC_ENV=$(echo $(params.src-environment) | cut -d "-" -f2)
-
-  #     wait_until() {
-  #       condition=$1
-  #       message=$2
-  #       retries=$RETRIES
-  #       until $condition || [[ "$retries" -eq 0 ]]; do
-  #         retries=$((retries - 1))
-  #         sleep $SLEEP_TIME_SEC
-  #       done
-  #       if [[ "$retries" -eq 0 ]]; then
-  #         echo $message
-  #         exit 1
-  #       fi
-  #     }
-
-  #     resolve_deployment() {
-  #         deployment=$(oc -n ${SRC_ENV} get deploy -l app.kubernetes.io/instance=$(params.release-name) -o jsonpath='{$.items[0].metadata.name}' 2>/dev/null)
-  #     }
-
-  #     resolve_statefulset() {
-  #         statefulset=$(oc -n ${SRC_ENV} get statefulset -l app.kubernetes.io/instance=$(params.release-name) -o jsonpath='{$.items[0].metadata.name}' 2>/dev/null)
-  #     }
-
-  #     if [[ $(params.instance-type) = "statefulset" ]]; then
-  #       oc -n ${SRC_ENV} get statefulset
-  #       wait_until resolve_statefulset "Could not find statefulset"
-  #       oc -n ${SRC_ENV} rollout status statefulset $statefulset
-  #     elif [[ $(params.instance-type) = "deployment" ]]; then
-  #       oc -n ${SRC_ENV} get deploy
-  #       wait_until resolve_deployment "Could not find deployment"
-  #       oc -n ${SRC_ENV} rollout status deployment $deployment
-  #     else
-  #       echo "App you are looking for does not exist"
-  #       exit 1
-  #     fi
   - name: resolve-route
     image: quay.io/openshift/origin-cli:latest
     workingDir: $(params.source-dir)
@@ -113,38 +66,18 @@ spec:
       set -e
       SLEEP_TIME_SEC=10
       RETRIES=20
-
       SRC_ENV=$(echo $(params.src-environment) | cut -d "-" -f2)
+      url=$(params.git-url)
+      basename=$(basename $url)
+      GIT_REPO=${basename%.*}
+      echo $GIT_REPO
+      route=$(oc -n ${SRC_ENV} get route ${GIT_REPO} -o jsonpath='{.spec.host}' --ignore-not-found)
 
-      wait_until() {
-        condition=$1
-        message=$2
-        retries=$RETRIES
-        until $condition || [[ "$retries" -eq 0 ]]; do
-          retries=$((retries - 1))
-          sleep $SLEEP_TIME_SEC
-        done
-        if [[ "$retries" -eq 0 ]]; then
-          echo $message
-          exit 1
-        fi
-      }
-
-      url_is_ready() {
-        url=$1
-        curl -s \
-          https://$url 2>/dev/null
-      }
-
-      if [[ $(params.instance-type) = "statefulset" ]]; then
+      if [[ -z "$route" ]]; then
         echo "This is a QueueManager ... Skipping this step"
-      elif [[ $(params.instance-type) = "deployment" ]]; then
-        route=$(oc -n ${SRC_ENV} get route $(params.app-name) -o jsonpath='{.spec.host}')
-        echo -n $route > /source/route.txt
-        wait_until "url_is_ready $route/" "Route is not set up"
+        exit 0
       else
-        echo "App you are looking for does not exist"
-        exit 1
+        echo -n $route > /source/route.txt
       fi
   - name: run-test
     image: postman/newman:ubuntu
@@ -166,3 +99,12 @@ spec:
       else
         echo "Skipping tests ... Postman collections does not exist"
       fi
+  - name: app-name
+    image: quay.io/ibmgaragecloud/ibmcloud-dev:v2.0.4
+    workingDir: $(params.source-dir)
+    script: |
+      url=$(params.git-url)
+      basename=$(basename $url)
+      GIT_REPO=${basename%.*}
+      echo $GIT_REPO
+      echo -n "${GIT_REPO}" | tee $(results.app-name.path)

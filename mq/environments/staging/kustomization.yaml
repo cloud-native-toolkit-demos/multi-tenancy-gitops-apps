@@ -1,0 +1,10 @@
+resources:
+#- certificates/staging-mq-client-certificate.yaml
+#- certificates/staging-mq-server-certificate.yaml
+#- secrets/mq-client-jks-password-secret.yaml
+
+## NOTES:
+## - mq-infra/* is explicitly not handled here as it is handled by 
+##    /mq/config/argocd/staging/staging-mq-infra-instance.yaml
+## - mq-spring-app/* is explicitly not handled here as it is handled by 
+##    /mq/config/argocd/staging/staging-mq-spring-app-instance.yaml

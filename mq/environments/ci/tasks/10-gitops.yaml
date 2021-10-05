@@ -19,7 +19,7 @@ spec:
       default: ""
     - name: dest-environment
       default: ""
-    - name: app-type
+    - name: app-path
       default: ""
     - name: source-dir
       default: /source
@@ -115,28 +115,28 @@ spec:
 
           if [[ -n "$(params.parentdir)" ]]; then
             if [[ -n "$(params.src-environment)" ]]; then
-              PARENT_DIR_SRC="$(params.parentdir)/$(params.app-type)/$(params.src-environment)"
+              PARENT_DIR_SRC="$(params.parentdir)/$(params.app-path)/$(params.src-environment)"
             fi
             if [[ -n "$(params.dest-environment)" ]]; then
-              PARENT_DIR_DEST="$(params.parentdir)/$(params.app-type)/$(params.dest-environment)"
+              PARENT_DIR_DEST="$(params.parentdir)/$(params.app-path)/$(params.dest-environment)"
             else
               echo "Please set destination environment"
             fi
           elif [[ -n "${GIT_PARENT_DIR}" ]] && [[ "${GIT_PARENT_DIR}" = "bash -c"* ]]; then
             if [[ -n "$(params.src-environment)" ]]; then
-              PARENT_DIR_SRC=$(eval $GIT_PARENT_DIR | tail -n 1)"/$(params.app-type)/$(params.src-environment)"
+              PARENT_DIR_SRC=$(eval $GIT_PARENT_DIR | tail -n 1)"/$(params.app-path)/$(params.src-environment)"
             fi
             if [[ -n "$(params.dest-environment)" ]]; then
-              PARENT_DIR_DEST=$(eval $GIT_PARENT_DIR | tail -n 1)"/$(params.app-type)/$(params.dest-environment)"
+              PARENT_DIR_DEST=$(eval $GIT_PARENT_DIR | tail -n 1)"/$(params.app-path)/$(params.dest-environment)"
             else
               echo "Please set destination environment"
             fi
           elif [[ -n "${GIT_PARENT_DIR}" ]]; then
             if [[ -n "$(params.src-environment)" ]]; then
-              PARENT_DIR_SRC="${GIT_PARENT_DIR}/$(params.app-type)/$(params.src-environment)"
+              PARENT_DIR_SRC="${GIT_PARENT_DIR}/$(params.app-path)/$(params.src-environment)"
             fi
             if [[ -n "$(params.dest-environment)" ]]; then
-              PARENT_DIR_DEST="${GIT_PARENT_DIR}/$(params.app-type)/$(params.dest-environment)"
+              PARENT_DIR_DEST="${GIT_PARENT_DIR}/$(params.app-path)/$(params.dest-environment)"
             else
               echo "Please set destination environment"
             fi
@@ -200,8 +200,8 @@ spec:
             VERSION="$(params.version)"
             HELM_URL="$(params.helm-url)"
           else
-            VERSION="$(grep 'version:' ./$(params.app-type)/$(params.src-environment)/$(params.app-name)/${YAML_FILE} | awk 'NR==1{print $2}')"
-            HELM_URL="$(grep 'repository:' ./$(params.app-type)/$(params.src-environment)/$(params.app-name)/requirements.yaml | awk 'NR==1{print $2}')"
+            VERSION="$(grep 'version:' ./$(params.app-path)/$(params.src-environment)/$(params.app-name)/${YAML_FILE} | awk 'NR==1{print $2}')"
+            HELM_URL="$(grep 'repository:' ./$(params.app-path)/$(params.src-environment)/$(params.app-name)/requirements.yaml | awk 'NR==1{print $2}')"
           fi
 
           if [[ -z "${SUBDIR_SRC}" && -f "${SUBDIR_DEST}/${YAML_FILE}" ]]; then

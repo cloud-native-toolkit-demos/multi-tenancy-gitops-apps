@@ -1,12 +1,13 @@
-kind: RoleBinding
+kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: custom-pipeline-sa
+  namespace: ci
 subjects:
   - kind: ServiceAccount
     name: pipeline
     namespace: ci
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: custom-tekton-pipeline-sa
+  kind: ClusterRole
+  name: custom-pipeline-sa

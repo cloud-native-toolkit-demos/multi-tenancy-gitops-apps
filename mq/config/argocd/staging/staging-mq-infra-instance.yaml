@@ -10,7 +10,7 @@ spec:
   destination:
     namespace: staging
     server: https://kubernetes.default.svc
-  project: services
+  project: applications
   source:
     path: mq/environments/staging/mq-infra
     repoURL: https://github.com/cloud-native-toolkit-demos/multi-tenancy-gitops-apps.git
@@ -22,3 +22,5 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - Replace=true

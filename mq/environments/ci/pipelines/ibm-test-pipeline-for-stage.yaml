@@ -6,28 +6,37 @@ metadata:
     app.openshift.io/runtime: test
 spec:
   params:
+    - name: git-url
+      description: The url for the git repository
+    - name: git-revision
+      description: git branch for the test app
+      default: master
     - name: src-environment
       description: environment
       default: staging
     - name: dest-environment
       description: environment
       default: prod
-    - name: app-type
-      description: Services / Application (2-services/instances or 3-apps/instances)
-    - name: app-name
-      description: Queuemanager / Application (mq-infra or mq-spring-app)
+    - name: app-path
+      description: Path in gitops repo
+      default: mq/environments
     - name: git-pr
       description: Enable the pipeline to do a PR for the gitops repo
       default: "true"
+    - name: test-plan
+      description: Path of the postman collection
+      default: "jmeter/mq-spring-app.jmx"
   tasks:
     - name: stage-instance-tests
       taskRef:
-        name: ibm-functional-test
+        name: ibm-jmeter-performance-test
       params:
-        - name: app-name
-          value: "$(params.app-name)"
+        - name: git-url
+          value: "$(params.git-url)"
         - name: src-environment
           value: "$(params.src-environment)"
+        - name: test-plan
+          value: "$(params.test-plan)"
     - name: gitops
       taskRef:
         name: ibm-gitops
@@ -35,12 +44,12 @@ spec:
         - stage-instance-tests
       params:
         - name: app-name
-          value: "$(params.app-name)"
+          value: "$(tasks.stage-instance-tests.results.app-name)"
         - name: src-environment
           value: "$(params.src-environment)"
         - name: dest-environment
           value: "$(params.dest-environment)"
-        - name: app-type
-          value: "$(params.app-type)"
+        - name: app-path
+          value: "$(params.app-path)"
         - name: git-pr
           value: "$(params.git-pr)"

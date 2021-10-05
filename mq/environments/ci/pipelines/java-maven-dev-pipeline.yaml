@@ -17,10 +17,10 @@ spec:
       default: "false"
     - name: environment
       description: environment
-      default: namespace-dev
-    - name: app-type
-      description: Application
-      default: 3-apps/instances
+      default: dev
+    - name: app-path
+      description: Path in gitops repo
+      default: mq/environments
     - name: security
       description: enable app security
       default: "false"
@@ -180,8 +180,8 @@ spec:
           value: $(tasks.helm-release.results.helm-url)
         - name: tools-image
           value: "$(tasks.setup.results.tools-image)"
-        - name: app-type
-          value: "$(params.app-type)"
+        - name: app-path
+          value: "$(params.app-path)"
         - name: dest-environment
           value: "$(params.environment)"
         - name: git-pr

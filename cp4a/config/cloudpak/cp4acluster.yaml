@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cloudpak-cp4a-cluster
+  annotations:
+    argocd.argoproj.io/sync-wave: "250"
+  labels:
+    gitops.tier.group: cntk
+    gitops.tier.layer: applications
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: cloudpak
+    server: https://kubernetes.default.svc
+  project: applications
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+  source:
+    path: cp4a/environments/cloudpak/cp4acluster/20.2
+    repoURL: https://github.com/cloud-native-toolkit-demos/multi-tenancy-gitops-apps.git
+    targetRevision: master
+

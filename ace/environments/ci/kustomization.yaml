@@ -5,7 +5,6 @@ resources:
 - pipelines/ace-promote-stage-prod-pipeline.yaml
 - pipelines/ace-bar-pipeline.yaml
 - pvc/ace-bar-pvc.yaml
-- pvc/ace-rest-ws-pvc.yaml
 - pvc/ace-test-pvc.yaml
 - roles/custom-pipeline-clusterrole.yaml
 - roles/custom-pipeline-clusterrolebinding.yaml

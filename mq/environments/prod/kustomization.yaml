@@ -1,0 +1,10 @@
+resources:
+#- certificates/prod-mq-client-certificate.yaml
+#- certificates/prod-mq-server-certificate.yaml
+#- secrets/mq-client-jks-password-secret.yaml
+
+## NOTES:
+## - mq-infra/* is explicitly not handled here as it is handled by 
+##    /mq/config/argocd/prod/prod-mq-infra-instance.yaml
+## - mq-spring-app/* is explicitly not handled here as it is handled by 
+##    /mq/config/argocd/prod/prod-mq-spring-app-instance.yaml

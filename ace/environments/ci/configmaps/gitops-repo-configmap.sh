@@ -3,8 +3,8 @@
 # Set variables
 if [ -z ${GIT_HOST} ]; then echo "Please set GIT_HOST when running script"; exit 1; fi
 if [ -z ${GIT_ORG} ]; then echo "Please set GIT_ORG when running script"; exit 1; fi
-if [ -z ${GITOPS_REPO} ]; then echo "Please set GITOPS_REPO when running script"; exit 1; fi
-if [ -z ${GITOPS_BRANCH} ]; then echo "Please set GITOPS_BRANCH when running script"; exit 1; fi
+if [ -z ${GIT_GITOPS_APPLICATIONS} ]; then echo "Please set GIT_GITOPS_APPLICATIONS when running script"; exit 1; fi
+if [ -z ${GIT_GITOPS_APPLICATIONS_BRANCH} ]; then echo "Please set GIT_GITOPS_APPLICATIONS_BRANCH when running script"; exit 1; fi
 if [ -z ${GIT_USER} ]; then echo "Please set GIT_USER when running script"; exit 1; fi
 
 
@@ -19,12 +19,12 @@ metadata:
     type: git
   name: gitops-repo-ace
 data:
-  branch: ${GITOPS_BRANCH}
+  branch: ${GIT_GITOPS_APPLICATIONS_BRANCH}
   host: ${GIT_HOST}
   org: ${GIT_ORG}
   owner: ${GIT_USER}
   parentdir: .
   protocol: https
-  repo: ${GITOPS_REPO}
-  url: https://${GIT_HOST}/${GIT_ORG}/${GITOPS_REPO}.git
+  repo: ${GIT_GITOPS_APPLICATIONS}
+  url: https://${GIT_HOST}/${GIT_ORG}/${GIT_GITOPS_APPLICATIONS}.git
 EOF

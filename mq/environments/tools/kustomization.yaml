@@ -1,0 +1,4 @@
+resources:
+#- certificates/mq-selfsigned-certificate/mq-self-signed-ca-certificate.yaml
+#- cluster-issuers/mq-selfsigned-clusterissuer/mq-self-signed-clusterissuer.yaml
+#- cluster-issuers/selfsigned-clusterissuer/clusterissuer.yaml

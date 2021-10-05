@@ -1,0 +1,11 @@
+---
+serviceaccount:
+  argocd_application_controller: argocd-cluster-argocd-application-controller
+spec:
+  shared_configuration:
+    sc_deployment_hostname_suffix: to-be-set
+    sc_deployment_platform: ROKS
+storageclass:
+  gold: managed-nfs-storage
+  silver: managed-nfs-storage
+  bronze: managed-nfs-storage
