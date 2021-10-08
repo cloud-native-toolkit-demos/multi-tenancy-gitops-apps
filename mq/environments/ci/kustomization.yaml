@@ -14,7 +14,7 @@ resources:
 - roles/custom-pipeline-sa-role.yaml
 - roles/custom-pipeline-sa-rolebinding.yaml
 #- routes/cntk-route.yaml
-# - scc/values.yaml
+#- scc/values.yaml
 - secrets/artifactory-access-secret.yaml
 - secrets/git-credentials-secret.yaml
 - secrets/ibm-entitled-registry-credentials-secret.yaml
