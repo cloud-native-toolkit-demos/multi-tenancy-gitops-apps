@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: ibm-gitops
+  name: ibm-gitops-ace
   annotations:
     description: Publishes the helm chart configuration to the provided gitops repo to trigger downstream deployments
     app.openshift.io/description: Publishes the helm chart configuration to the provided gitops repo to trigger downstream deployments
