@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: ibm-jmeter-performance-test
+  name: ibm-jmeter-performance-test-ace
   annotations:
     description: Executes a JMeter Test from a GIT repo (preview)
     app.openshift.io/description: Executes a JMeter Test from a GIT repo (preview)
