@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ci-scc
+  name: ci-scc-ace
   annotations:
     argocd.argoproj.io/sync-wave: "250"
   labels:
