@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: apic-post-install-config
+  name: apic-multicloud-post-install-config
 spec:
   params:
     - name: git-apic-pipeline-git-url
@@ -10,12 +10,18 @@ spec:
       description: GitHub url where the pipeline scripts are stored. These are the scripts the pipeline will execute
     - name: git-apic-pipeline-git-branch
       type: string
-      default: master
+      default: apic-multicloud
       description: Github branch for the pipeline scripts
     - name: apic-project
       type: string
       default: tools
       description: OpenShift project where your IBM API Connect Cluster v10 has been deployed into
+    - name: gtw-a7s-azs
+      type: string
+      description: Comma-separated list of IBM API Connect availability zones names. The length of this list must match the gtw-a7s-domains list below
+    - name: gtw-a7s-domains
+      type: string
+      description: Comma-separated list of the OpenShift domains where the IBM API Connect Gateway and Analytics components have been installed to. The length of this list must match the gtw-a7s-azs list above
     - name: debug
       type: string
       default: "True"
@@ -32,6 +38,12 @@ spec:
       # OpenShift project where your IBM API Connect Cluster v10 has been deployed into.
       - name: apic-project
         value: "$(params.apic-project)"
+      # Comma-separated list of IBM API Connect availability zones names. The length of this list must match the gtw-a7s-domains list below.
+      - name: gtw-a7s-azs
+        value: "$(params.gtw-a7s-azs)"
+      # Comma-separated list of the OpenShift domains where the IBM API Connect Gateway and Analytics components have been installed to. The length of this list must match the gtw-a7s-azs list above.
+      - name: gtw-a7s-domains
+        value: "$(params.gtw-a7s-domains)"
       # Debug flag
       - name: debug
         value: "$(params.debug)"
