@@ -19,7 +19,7 @@ spec:
   source:
     git:
       ref: host
-      uri: https://github.com/jesusmah/apic-nodejs
+      uri: https://github.com/cloud-native-toolkit/apic-nodejs
     type: Git
   strategy:
     sourceStrategy:
