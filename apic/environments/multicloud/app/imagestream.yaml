@@ -1,0 +1,13 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  annotations:
+    openshift.io/generated-by: cloudpak-production-deployment-guide
+  labels:
+    app: myapp
+    app.kubernetes.io/component: myapp
+    # app.kubernetes.io/instance: myapp
+  name: myapp
+spec:
+  lookupPolicy:
+    local: false

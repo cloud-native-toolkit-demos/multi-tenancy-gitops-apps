@@ -1,0 +1,41 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  annotations:
+    openshift.io/generated-by: cloudpak-production-deployment-guide
+  labels:
+    app: myapp
+    app.kubernetes.io/component: myapp
+    # app.kubernetes.io/instance: myapp
+  name: myapp
+spec:
+  replicas: 1
+  selector:
+    deploymentconfig: myapp
+  strategy:
+    resources: {}
+  template:
+    metadata:
+      annotations:
+        openshift.io/generated-by: cloudpak-production-deployment-guide
+      labels:
+        deploymentconfig: myapp
+    spec:
+      containers:
+      - image: myapp:latest
+        name: myapp
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources: {}
+  test: false
+  triggers:
+  - type: ConfigChange
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - myapp
+      from:
+        kind: ImageStreamTag
+        name: myapp:latest
+    type: ImageChange

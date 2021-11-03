@@ -10,7 +10,7 @@ spec:
       description: GitHub url where the pipeline scripts are stored. These are the python scripts the pipeline will execute
     - name: git-apic-pipeline-git-branch
       type: string
-      default: master
+      default: apic-multicloud
       description: Github branch for the pipeline scripts
     - name: git-apic-yaml-url
       type: string
@@ -22,11 +22,11 @@ spec:
       description: GitHub branch for the products and APIs
     - name: git-products-path
       type: string
-      default: 'Demo/Products'
+      default: 'multicloud/products'
       description: Path to where the products definitions are stored within your GitHub repository
     - name: git-apis-path
       type: string
-      default: 'Demo/APIs'
+      default: 'multicloud/apis'
       description: Path to where the APIs definitions are stored within your GitHub repository
     - name: apic-project
       type: string
