@@ -1,0 +1,40 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  annotations:
+    openshift.io/generated-by: cloudpak-production-deployment-guide
+  labels:
+    app: myapp
+    app.kubernetes.io/component: myapp
+    # app.kubernetes.io/instance: myapp
+  name: myapp
+spec:
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: myapp:latest
+  postCommit: {}
+  resources: {}
+  source:
+    git:
+      ref: host
+      uri: https://github.com/cloud-native-toolkit/apic-nodejs
+    type: Git
+  strategy:
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: nodejs:14-ubi8
+        namespace: openshift
+    type: Source
+  triggers:
+  - github:
+      secret: 1QHuCu5cz--BMZ0J9KXD
+    type: GitHub
+  - generic:
+      secret: fh2W7B_Z7BwLbC39WgP1
+    type: Generic
+  - type: ConfigChange
+  - imageChange: {}
+    type: ImageChange

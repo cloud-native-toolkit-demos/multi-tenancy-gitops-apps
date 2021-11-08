@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gateway-analytics-instance
+  annotations:
+    argocd.argoproj.io/sync-wave: "300"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: openshift-gitops
+    server: https://kubernetes.default.svc
+  project: applications
+  source:
+    path: apic/environments/multi-cluster/instances/template-gateway-analytics-instance
+    repoURL: ${GIT_BASEURL}/${GIT_ORG}/${GIT_GITOPS_APPLICATIONS}
+    targetRevision: ${GIT_GITOPS_APPLICATIONS_BRANCH}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

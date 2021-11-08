@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: apic-app-multicloud
+  annotations:
+    argocd.argoproj.io/sync-wave: "300"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: dev
+    server: https://kubernetes.default.svc
+  project: applications
+  source:
+    path: apic/environments/multi-cluster/app
+    repoURL: ${GIT_BASEURL}/${GIT_ORG}/${GIT_GITOPS_APPLICATIONS}
+    targetRevision: ${GIT_GITOPS_APPLICATIONS_BRANCH}
+  syncPolicy: {}
+  ignoreDifferences:
+  - group: apps
+    kind: DeploymentConfig
+    jsonPointers:
+    - /spec/containers/image
+    - /spec/containers/terminationMessagePath
+    - /spec/containers/terminationMessagePolicy
