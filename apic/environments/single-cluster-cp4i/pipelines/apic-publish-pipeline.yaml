@@ -32,9 +32,6 @@ spec:
       type: string
       default: tools
       description: OpenShift project where your IBM API Connect Cluster v10 has been deployed into
-    - name: api-key
-      type: string
-      description: Api Key to log into IBM API Connect through the IBM Common Services OIDC Provider
     - name: debug
       type: string
       default: "True"
@@ -63,9 +60,6 @@ spec:
       # OpenShift project where your IBM API Connect Cluster v10 has been deployed into.
       - name: apic-project
         value: "$(params.apic-project)"
-      # Api Key to log into IBM API Connect through the IBM Common Services OIDC Provider
-      - name: api-key
-        value: "$(params.api-key)"
       # Debug flag
       - name: debug
         value: "$(params.debug)"

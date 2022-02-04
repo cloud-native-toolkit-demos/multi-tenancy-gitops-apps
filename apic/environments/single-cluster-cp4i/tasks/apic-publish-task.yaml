@@ -53,9 +53,6 @@ spec:
       type: string
       default: tools
       description: OpenShift project where your IBM API Connect Cluster v10 has been deployed into.
-    - name: api-key
-      type: string
-      description: Api Key to log into IBM API Connect through the IBM Common Services OIDC Provider
     - name: debug
       type: string
       default: "True"
@@ -85,8 +82,6 @@ spec:
         value: $(params.git-products-path)
       - name: GIT_APIS_PATH
         value: $(params.git-apis-path)
-      - name: OIDC_API_KEY
-        value: $(params.api-key)
   steps:
     - name: pipeline-config
       image: quay.io/ibmgaragecloud/alpine-git
