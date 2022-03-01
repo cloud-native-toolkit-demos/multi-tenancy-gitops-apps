@@ -13,8 +13,8 @@ spec:
   project: applications
   source:
     path: apic/environments/single-cluster-cp4i
-    repoURL: https://github.com/mq-apic-tutorial-ext/multi-tenancy-gitops-apps.git
-    targetRevision: master
+    repoURL: ${GIT_BASEURL}/${GIT_ORG}/${GIT_GITOPS_APPLICATIONS}
+    targetRevision: ${GIT_GITOPS_APPLICATIONS_BRANCH}
   syncPolicy:
     automated:
       prune: true
