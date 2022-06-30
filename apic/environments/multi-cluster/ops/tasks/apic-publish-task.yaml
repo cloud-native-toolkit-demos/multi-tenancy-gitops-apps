@@ -143,6 +143,7 @@ spec:
         echo "** Step download-products **"
         echo "****************************"
         cd scripts
+        python3 -mpip install PyYAML requests > /dev/null
         python3 download_product_files_from_git.py
     - name: download-apis
       image: $(params.python-image)
@@ -153,7 +154,7 @@ spec:
         echo "** Step download-apis **"
         echo "************************"
         # Pre-req for parsing YAML files
-        python3 -mpip install PyYAML > /dev/null
+        python3 -mpip install PyYAML requests > /dev/null
         cd scripts
         python3 download_api_files_from_git.py
     # - name: replace-placeholders
