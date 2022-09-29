@@ -7,12 +7,13 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
-  ignoreDifferences:
-  - group: route.openshift.io/v1
-    kind: route
-    name: es-starter-app
-    jsonPointers:
-    - /spec/host
+  # The following is not needed anymore as the route has been specified without the host property
+  # ignoreDifferences:
+  # - group: route.openshift.io/v1
+  #   kind: route
+  #   name: es-starter-app
+  #   jsonPointers:
+  #   - /spec/host
   destination:
     namespace: dev
     server: https://kubernetes.default.svc

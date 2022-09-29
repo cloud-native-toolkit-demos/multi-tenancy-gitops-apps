@@ -1,2 +1,5 @@
 resources:
+  # This was introduced with the latest versions of Strimzi where the metrics configuration is read from a configmap that needs to be created beforehand.
+  # Do not know whey the EventStreams operator does not create a default one out of the box though.
+  - ./metrics-config.yaml
   - ./event-streams.yaml

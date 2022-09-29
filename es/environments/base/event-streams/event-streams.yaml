@@ -5,7 +5,9 @@ metadata:
 spec:
   security:
     internalTls: NONE
-  version: 11.0.2
+  # Make sure this Event Streams Operand version is the correct version for the Event Streams Operator version being installed.
+  # As of Event Streams Operator versions 3.x, there is no backwards compatibility so the versions of the Event Streams Operator and Operand must match the correct levels.
+  version: 11.0.4
   license:
     # By installing this product you accept the license terms at https://ibm.biz/es-license
     accept: true

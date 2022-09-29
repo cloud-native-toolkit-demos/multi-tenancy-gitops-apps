@@ -5,10 +5,10 @@ metadata:
   labels:
     eventstreams.ibm.com/cluster: dev-es-inst
 spec:
-  partitions: 3 
-  replicas: 3
+  partitions: 1
+  replicas: 1
   config:
-    min.insync.replicas: 2
+    min.insync.replicas: 1
     cleanup.policy: delete
     retention.ms: 604800000
     segment.ms: 604800000
