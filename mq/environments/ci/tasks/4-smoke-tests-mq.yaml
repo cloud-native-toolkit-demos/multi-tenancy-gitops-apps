@@ -104,7 +104,7 @@ spec:
           echo "YAML_ROOT: $YAML_ROOT"
 
           if [[ -f "$YAML_ROOT/queuemanager.yaml" ]]; then
-            export YAML="$(params.yaml)/generic-qmgr/queuemanager.yaml"
+            export YAML="$YAML_ROOT/queuemanager.yaml"
           elif [[ -f "$YAML_ROOT/deployment.yaml" ]]; then
             export YAML="$YAML_ROOT/deployment.yaml"
           elif [[ -f statefulset.yaml ]]; then
